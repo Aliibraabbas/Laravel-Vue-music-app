@@ -1,0 +1,81 @@
+<template>
+    <MusicLayout>
+        <template #title>
+            Musiques
+        </template>
+
+        <template #action>
+            <Link v-if="$page.props.isAdmin" :href="route('tracks.create')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all">
+                Créer une musique
+            </Link>
+        </template>
+
+        <template #content>
+            <div style="margin-top: 20px; margin-bottom: 20px">
+                <input
+                    type="search"
+                    name="search"
+                    id="search"
+                    v-model="search"
+                />
+                Search : {{ search }}
+            </div>
+            
+            <div class="track-grid">
+                <Track v-for="track in filteredTracks" :key="track.uuid" :track="track" :active="currentTrack === track.uuid" @played="play" />
+            </div>
+        </template>
+        
+    </MusicLayout>
+</template>
+   
+<script>
+   import MusicLayout from '@/Layouts/MusicLayout.vue'
+   import { Link } from '@inertiajs/vue3'
+   import Track from '@/Components/Track/Track.vue'
+   export default {
+        components: {
+            MusicLayout,
+            Link,
+            Track,
+        },
+        props: ['tracks'],
+        data() {
+            return {
+                search: '',
+                audio: null,
+                currentTrack: null,
+            }
+        },
+        computed: {
+            filteredTracks(){
+                return this.tracks.filter((track) => {
+                    return track.title.toLowerCase().includes(this.search.toLowerCase()) || track.artist.toLowerCase().includes(this.search.toLowerCase())
+                })
+            }
+        },
+        methods: {
+            play(track){
+                const url = '/storage/' + track.music;
+
+                if(!this.currentTrack){
+                    this.audio = new Audio(url);
+                    this.audio.play();
+                } else if (this.currentTrack !== track.uuid){
+                    this.audio.pause();
+                    this.audio.src = url;
+                    this.audio.play();
+                } else {
+                    this.audio.paused ? this.audio.play() : this.audio.pause();
+                }
+
+                this.currentTrack = track.uuid;
+            }
+        }
+   }
+</script>
+   
+<style>
+
+
+</style>
